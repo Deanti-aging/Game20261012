@@ -20,6 +20,11 @@
   --font-fun: "ZCOOL KuaiLe", "Baloo 2", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
   --font-body: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", "Segoe UI", sans-serif;
 }
+/* 英文界面：圆润的拉丁字体优先（ZCOOL KuaiLe 的英文字母不太好看） */
+html[lang="en"] {
+  --font-fun: "Baloo 2", "ZCOOL KuaiLe", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+}
 
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }

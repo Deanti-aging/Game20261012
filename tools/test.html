@@ -9,6 +9,8 @@
   window.onerror = (m, s, l) => { window.__errs.push(m + ' @' + s + ':' + l); };
   window.addEventListener('unhandledrejection', (e) => window.__errs.push('promise: ' + (e.reason && e.reason.stack || e.reason)));
   try { localStorage.clear(); } catch (e) {}
+  // 下面的测试按中文按钮文字查找元素，所以固定用中文界面（?lang=en 可以改测英文的加载/报错情况）
+  if (!/[?&]lang=/.test(location.search)) history.replaceState(null, '', location.pathname + '?lang=zh');
 </script>
 <script src="../js/config.js"></script>
 <script src="../js/engine.js"></script>

@@ -19,12 +19,12 @@
 <script src="../js/levels/11-maze.js"></script>
 <script src="../js/levels/12-next-word.js"></script>
 <script>
-  // 截图辅助：?level=N 进入关卡并关掉开场卡；?view=map|reveal|card
+  // 截图辅助：?level=N 进入关卡并关掉开场卡；?view=map|reveal|card；&lang=zh|en 指定语言
   const p = new URLSearchParams(location.search);
   const n = +p.get('level');
   if (n) {
     G.startLevel(G.levels[n - 1]);
-    const b = [...document.querySelectorAll('button')].find((x) => x.textContent.includes('开始训练！'));
+    const b = document.querySelector('.intro .btn');
     b && b.click();
     setTimeout(() => { document.getElementById('modal-root').innerHTML = ''; }, 300);
   } else if (p.get('view') === 'map') {

@@ -1,6 +1,7 @@
 /* 第 3 关：损失 & 梯度下降 —— 亲手把小球一步步挪到谷底 */
 (function () {
   const { h } = G;
+  const tr = G.t;
 
   /** 山谷场景（第 3、4 关共用） */
   G.valley = function (cv, opts) {
@@ -37,7 +38,7 @@
       ctx.beginPath(); ctx.moveTo(mx, my - 46); ctx.lineTo(mx + 26, my - 38); ctx.lineTo(mx, my - 30); ctx.closePath(); ctx.fill(); ctx.stroke();
       ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillStyle = '#fff';
-      ctx.fillText('谷底 = 误差最小', mx, my + 16);
+      ctx.fillText(tr('谷底 = 误差最小', 'bottom = lowest error'), mx, my + 16);
       if (extra) extra(ctx, px, py);
       if (ballX != null && ballX >= X0 - 0.6 && ballX <= X1 + 0.6) drawBall(ballX);
     }
@@ -64,20 +65,35 @@
   G.registerLevel({
     id: 'descent',
     icon: '⛰️',
-    title: '小球下山谷',
-    skill: '一步步把“误差”降到最低',
+    title: tr('小球下山谷', 'Roll Down the Valley'),
+    skill: tr('一步步把“误差”降到最低', 'bringing the “error” down step by step'),
     minutes: 4,
     terms: ['loss', 'gd'],
-    story: '波波的答案总是错一点点。这个“错多少”被画成了一座山谷：<b>小球越高，错得越多</b>；滚到谷底，就最准啦。<br>你可以设定每一步走多远，然后往左或往右挪动小球。',
-    hello: '帮我把小球挪到<b>谷底的小旗</b>那里！看小球下面的<b>箭头</b>，它会告诉你哪边是下坡。',
-    winLine: '到谷底啦！我的误差变得超级小！',
-    reveal: '<p>小球的高度，代表机器答案“错了多少”，这个分数叫<b>「损失」</b>（也常叫误差）。</p><p>你刚才每一步都在做同一件事：<b>看脚下哪边是下坡（箭头），就往那边走一步</b>，一直走到最低点。这个方法叫<b>「梯度下降」</b>，是几乎所有机器学习模型（包括大语言模型）训练时都在用的核心方法！</p><p>“梯度”就是你看到的那个箭头：它告诉你坡往哪边、有多陡。</p>',
+    story: tr(
+      '波波的答案总是错一点点。这个“错多少”被画成了一座山谷：<b>小球越高，错得越多</b>；滚到谷底，就最准啦。<br>你可以设定每一步走多远，然后往左或往右挪动小球。',
+      'Bobo’s answers are always a little off. “How far off” is drawn as a valley: <b>the higher the ball, the bigger the error</b>. At the very bottom, it’s spot on.<br>You set how far each step goes, then move the ball left or right.'),
+    hello: tr(
+      '帮我把小球挪到<b>谷底的小旗</b>那里！看小球下面的<b>箭头</b>，它会告诉你哪边是下坡。',
+      'Help me get the ball to the <b>flag at the bottom</b>! The <b>arrow</b> under the ball shows which way is downhill.'),
+    winLine: tr('到谷底啦！我的误差变得超级小！', 'We hit the bottom! My error is super tiny now!'),
+    reveal: tr(
+      '<p>小球的高度，代表机器答案“错了多少”，这个分数叫<b>「损失」</b>（也常叫误差）。</p><p>你刚才每一步都在做同一件事：<b>看脚下哪边是下坡（箭头），就往那边走一步</b>，一直走到最低点。这个方法叫<b>「梯度下降」</b>，是几乎所有机器学习模型（包括大语言模型）训练时都在用的核心方法！</p><p>“梯度”就是你看到的那个箭头：它告诉你坡往哪边、有多陡。</p>',
+      '<p>The ball’s height shows how wrong the machine’s answer is. That score is called the <b>loss</b> (often called the error).</p><p>Every step, you did the same thing: <b>check which way is downhill (the arrow) and take a step that way</b>, until you reached the lowest point. That method is called <b>gradient descent</b>, and it’s the core technique used to train almost every machine learning model — large language models included!</p><p>The “gradient” is the arrow you saw: it tells you which way the slope goes and how steep it is.</p>'),
     quiz: {
-      q: '机器人在练习投篮：每投一次，就看球偏左还是偏右，然后朝<b>相反方向</b>稍微修正一点点。这最像哪种方法？',
-      options: ['梯度下降：根据误差的方向，一小步一小步修正', '随机乱投，碰运气', '把上次进球的动作背下来', '给篮球贴标签'],
+      q: tr(
+        '机器人在练习投篮：每投一次，就看球偏左还是偏右，然后朝<b>相反方向</b>稍微修正一点点。这最像哪种方法？',
+        'A robot is practicing basketball: after each shot it checks whether the ball missed left or right, then adjusts a tiny bit in the <b>opposite direction</b>. Which method is this most like?'),
+      options: [
+        tr('梯度下降：根据误差的方向，一小步一小步修正', 'Gradient descent: correcting in small steps based on the direction of the error'),
+        tr('随机乱投，碰运气', 'Throwing randomly and hoping for luck'),
+        tr('把上次进球的动作背下来', 'Memorizing the motion of the last shot that went in'),
+        tr('给篮球贴标签', 'Putting labels on basketballs')
+      ],
       answer: 0,
-      hint: '“看偏差的方向 → 往减少偏差的方向走一小步 → 重复”',
-      explain: '偏左就往右修正一点、偏右就往左修正一点，反复进行——这正是梯度下降的思路：沿着让损失变小的方向，一步步调整。'
+      hint: tr('“看偏差的方向 → 往减少偏差的方向走一小步 → 重复”', '“See which way you’re off → take a small step that reduces it → repeat”'),
+      explain: tr(
+        '偏左就往右修正一点、偏右就往左修正一点，反复进行——这正是梯度下降的思路：沿着让损失变小的方向，一步步调整。',
+        'Missed left? Nudge right. Missed right? Nudge left. Again and again — that’s exactly gradient descent: adjust step by step in the direction that makes the loss smaller.')
     },
 
     mount(stage, api) {
@@ -87,24 +103,24 @@
       const trail = [START];
 
       api.missions([
-        `让小球到达谷底（误差小于 ${GOAL}）`,
-        `只用 ${MAX_MOVES} 步以内`
+        tr(`让小球到达谷底（误差小于 ${GOAL}）`, `Get the ball to the bottom (error below ${GOAL})`),
+        tr(`只用 ${MAX_MOVES} 步以内`, `Do it in ${MAX_MOVES} steps or fewer`)
       ]);
 
-      const step = G.slider({ label: '👟 每一步走多远：', min: 0.1, max: 3, step: 0.1, value: 0.5, format: (v) => v.toFixed(1) });
-      const left = h('button', { class: 'btn btn-big btn-blue', onclick: () => move(-1) }, '◀ 往左走');
-      const right = h('button', { class: 'btn btn-big btn-blue', onclick: () => move(1) }, '往右走 ▶');
-      const reset = h('button', { class: 'btn btn-white', onclick: resetAll }, '↺ 放回山顶');
+      const step = G.slider({ label: tr('👟 每一步走多远：', '👟 Step size:'), min: 0.1, max: 3, step: 0.1, value: 0.5, format: (v) => v.toFixed(1) });
+      const left = h('button', { class: 'btn btn-big btn-blue', onclick: () => move(-1) }, tr('◀ 往左走', '◀ Step left'));
+      const right = h('button', { class: 'btn btn-big btn-blue', onclick: () => move(1) }, tr('往右走 ▶', 'Step right ▶'));
+      const reset = h('button', { class: 'btn btn-white', onclick: resetAll }, tr('↺ 放回山顶', '↺ Back to the top'));
       const lossStat = h('b', {}, '');
       const moveStat = h('b', {}, '');
-      const lossBox = h('div', { class: 'stat' }, '📉 误差（高度）', lossStat);
-      const moveBox = h('div', { class: 'stat' }, '👣 已走步数', moveStat);
+      const lossBox = h('div', { class: 'stat' }, tr('📉 误差（高度）', '📉 Error (height)'), lossStat);
+      const moveBox = h('div', { class: 'stat' }, tr('👣 已走步数', '👣 Steps taken'), moveStat);
 
       stage.append(cv.el,
         h('div', { class: 'stat-row' }, lossBox, moveBox),
         h('div', { class: 'controls' }, step.el),
         h('div', { class: 'controls' }, left, right, reset),
-        h('p', { class: 'hint-line' }, '⌨️ 也可以用键盘 ← → 移动'));
+        h('p', { class: 'hint-line' }, tr('⌨️ 也可以用键盘 ← → 移动', '⌨️ You can also use the ← → keys')));
 
       const onKey = (e) => {
         if (e.key === 'ArrowLeft') { e.preventDefault(); move(-1); }
@@ -138,7 +154,7 @@
           ctx.beginPath(); ctx.moveTo(bx + dir * (len + 12), by); ctx.lineTo(bx + dir * len, by - 9); ctx.lineTo(bx + dir * len, by + 9); ctx.fill();
           ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'center';
           ctx.fillStyle = '#3b3355';
-          ctx.fillText(Math.abs(g) > 2 ? '下坡（很陡）' : '下坡', bx + dir * len * 0.5, by + 20);
+          ctx.fillText(Math.abs(g) > 2 ? tr('下坡（很陡）', 'downhill (steep)') : tr('下坡', 'downhill'), bx + dir * len * 0.5, by + 20);
         });
       }
 
@@ -170,15 +186,21 @@
             done = true;
             api.win();
           } else {
-            api.say(`到谷底了！不过用了 ${moves} 步，超过了 ${MAX_MOVES} 步。点“放回山顶”，试试把步子迈大一点？`, 'think');
+            api.say(tr(
+              `到谷底了！不过用了 ${moves} 步，超过了 ${MAX_MOVES} 步。点“放回山顶”，试试把步子迈大一点？`,
+              `Made it to the bottom! But it took ${moves} steps — more than ${MAX_MOVES}. Press “Back to the top” and try bigger steps?`), 'think');
           }
           return;
         }
-        if ((from - 1) * (x - 1) < 0) api.say('哎呀，<b>冲过头了</b>！跑到对面山坡上去了。步子是不是太大了？', 'wow');
-        else if (L > before) api.say('这是<b>上坡</b>！误差变大了。看看箭头，往下坡的方向走～', 'sad');
-        else if (step.value <= 0.3 && moves >= 3) api.say('方向对了，可是一步一点点……这样要走好久呀 🐢', 'think');
-        else api.say(`误差从 ${before.toFixed(2)} 降到了 ${L.toFixed(2)}，继续往下坡走！`, 'happy');
-        if (moves >= MAX_MOVES && !api.checked(1)) api.say(`已经走了 ${moves} 步啦……可以继续走到谷底，也可以点“放回山顶”重来，挑战 ${MAX_MOVES} 步以内。`, 'think');
+        if ((from - 1) * (x - 1) < 0) api.say(tr('哎呀，<b>冲过头了</b>！跑到对面山坡上去了。步子是不是太大了？', 'Whoops, <b>overshot</b>! The ball landed on the other slope. Was that step too big?'), 'wow');
+        else if (L > before) api.say(tr('这是<b>上坡</b>！误差变大了。看看箭头，往下坡的方向走～', 'That’s <b>uphill</b>! The error got bigger. Follow the arrow downhill!'), 'sad');
+        else if (step.value <= 0.3 && moves >= 3) api.say(tr('方向对了，可是一步一点点……这样要走好久呀 🐢', 'Right direction, but such tiny steps… this will take forever 🐢'), 'think');
+        else api.say(tr(`误差从 ${before.toFixed(2)} 降到了 ${L.toFixed(2)}，继续往下坡走！`, `Error dropped from ${before.toFixed(2)} to ${L.toFixed(2)} — keep heading downhill!`), 'happy');
+        if (moves >= MAX_MOVES && !api.checked(1)) {
+          api.say(tr(
+            `已经走了 ${moves} 步啦……可以继续走到谷底，也可以点“放回山顶”重来，挑战 ${MAX_MOVES} 步以内。`,
+            `That’s ${moves} steps already… You can keep going, or press “Back to the top” and try to make it in ${MAX_MOVES} or fewer.`), 'think');
+        }
       }
 
       function resetAll() {
@@ -187,7 +209,7 @@
         x = shownX = START; moves = 0; done = false;
         trail.length = 0; trail.push(START);
         stats(); render();
-        api.say('小球回到山顶啦。先调好“每一步走多远”，再出发！', 'happy');
+        api.say(tr('小球回到山顶啦。先调好“每一步走多远”，再出发！', 'The ball is back at the top. Set the step size first, then off you go!'), 'happy');
       }
 
       stats(); render();

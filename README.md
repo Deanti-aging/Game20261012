@@ -5,6 +5,8 @@
 
 纯 HTML / CSS / JavaScript，无需任何构建工具、无外部依赖（可爱字体加载失败时会自动使用系统字体）。
 
+**中英双语**：默认英文，标题页和地图右上角的 🌐 按钮可以切换中文 / English（选择会保存在浏览器里）。也可以用 URL 直接指定：`index.html?lang=zh` 或 `?lang=en`。
+
 ## 关卡一览
 
 | # | 关卡 | 玩法 | 解锁术语 |
@@ -47,7 +49,7 @@ author: '你的署名',
    - Uploads：上传上面的 zip，勾选 **This file will be played in the browser**
    - Embed options：建议 **Viewport 1000 × 720**，勾选 **Mobile friendly**、**Fullscreen button**、**Enable scrollbars**
 3. 建议同时在 itch.io 的 **Payments** 里设为 “No payments” 或 “Donations”，游戏内已有 PayPal / 爱发电按钮。
-4. 标签建议：`educational`, `machine-learning`, `ai`, `kids`, `chinese`, `learning`
+4. 标签建议：`educational`, `machine-learning`, `ai`, `kids`, `learning`, `english`, `chinese`
 
 > 游戏内打赏链接会以新窗口打开（`target="_blank"`），在 itch.io 的 iframe 里也能正常跳转。
 
@@ -73,6 +75,12 @@ tools/                 打包脚本与测试页（不会打进 zip）
 ```
 
 新增关卡：在 `js/levels/` 新建文件，调用 `G.registerLevel({ id, icon, title, skill, terms, story, reveal, quiz, mount(stage, api) })`，并在 `index.html` 引入。`api` 提供 `say / missions / check / win / wait / after / onCleanup` 等方法。
+
+### 双语文字
+
+所有玩家能看到的文字都写成 `tr('中文', 'English')`（`const tr = G.t;`），按当前语言二选一。关卡和术语卡的数据在脚本加载时就确定了，所以切换语言会保存设置并刷新页面（`G.setLang`）。第 12 关的句子和候选词中英文各有一套，不是逐字翻译。
+
+`tools/test.html` 按中文按钮文字查找元素，所以默认以中文界面运行。
 
 ## 许可
 

@@ -1,11 +1,12 @@
 /* 第 8 关：聚类 & K 均值 —— 拖动队长，让散落的点自动归队 */
 (function () {
   const { h } = G;
+  const tr = G.t;
   const W = 640, H = 400;
   const CAP_COLORS = [
-    { fill: '#ff8787', light: '#ffc9c9', name: '红队' },
-    { fill: '#4dabf7', light: '#a5d8ff', name: '蓝队' },
-    { fill: '#fcc419', light: '#ffec99', name: '黄队' }
+    { fill: '#ff8787', light: '#ffc9c9' },
+    { fill: '#4dabf7', light: '#a5d8ff' },
+    { fill: '#fcc419', light: '#ffec99' }
   ];
   const CRITTERS = ['🐣', '🐥', '🐤'];
 
@@ -42,20 +43,35 @@
   G.registerLevel({
     id: 'kmeans',
     icon: '🚩',
-    title: '小鸡找队长',
-    skill: '自己把相似的东西分成几堆',
+    title: tr('小鸡找队长', 'Chicks Find Their Captains'),
+    skill: tr('自己把相似的东西分成几堆', 'sorting similar things into groups on its own'),
     minutes: 4,
     terms: ['cluster', 'kmeans'],
-    story: '操场上散落着 48 只小鸡，<b>没人告诉波波它们该怎么分组</b>。<br>波波想到一个办法：派出 3 个<b>队长</b> 🚩。每只小鸡跑向离自己最近的队长；队长再走到自己队伍的正中间……重复几次，会发生什么呢？',
-    hello: '先<b>拖动</b>三个队长摆个位置，再按<b>“队长走到队伍中间”</b>。小鸡会自动跟最近的队长！',
-    winLine: '三支队伍整整齐齐！没人告诉我答案，我自己分好啦！',
-    reveal: '<p>不给任何答案（没有标签），让机器自己把相似、靠近的东西分成几堆——这叫<b>「聚类」</b>。</p><p>你刚才用的方法叫<b>「K 均值」（K-means）</b>，K 就是队长的个数（这里 K = 3）。它只反复做两件事：</p><ol><li>每个点跟<b>最近的</b>队长；</li><li>每个队长走到<b>自己队伍的平均位置</b>（正中间）。</li></ol><p>如果一开始把两个队长放在同一堆里，它们可能会<b>卡住</b>，分出奇怪的队伍——这叫“局部最优”，所以起点也很重要！</p>',
+    story: tr(
+      '操场上散落着 48 只小鸡，<b>没人告诉波波它们该怎么分组</b>。<br>波波想到一个办法：派出 3 个<b>队长</b> 🚩。每只小鸡跑向离自己最近的队长；队长再走到自己队伍的正中间……重复几次，会发生什么呢？',
+      '48 chicks are scattered across the playground, and <b>nobody has told Bobo how to group them</b>.<br>Bobo has an idea: send out 3 <b>captains</b> 🚩. Each chick runs to the nearest captain; then each captain walks to the middle of its team… Repeat a few times — what happens?'),
+    hello: tr(
+      '先<b>拖动</b>三个队长摆个位置，再按<b>“队长走到队伍中间”</b>。小鸡会自动跟最近的队长！',
+      'First <b>drag</b> the three captains into place, then press <b>“Captains to the middle”</b>. Chicks automatically follow the nearest captain!'),
+    winLine: tr('三支队伍整整齐齐！没人告诉我答案，我自己分好啦！', 'Three neat teams! Nobody told me the answer — I sorted them myself!'),
+    reveal: tr(
+      '<p>不给任何答案（没有标签），让机器自己把相似、靠近的东西分成几堆——这叫<b>「聚类」</b>。</p><p>你刚才用的方法叫<b>「K 均值」（K-means）</b>，K 就是队长的个数（这里 K = 3）。它只反复做两件事：</p><ol><li>每个点跟<b>最近的</b>队长；</li><li>每个队长走到<b>自己队伍的平均位置</b>（正中间）。</li></ol><p>如果一开始把两个队长放在同一堆里，它们可能会<b>卡住</b>，分出奇怪的队伍——这叫“局部最优”，所以起点也很重要！</p>',
+      '<p>Giving the machine no answers at all (no labels) and letting it group similar, nearby things by itself — that’s called <b>clustering</b>.</p><p>The method you just used is called <b>K-means</b>, where K is the number of captains (here K = 3). It just repeats two things:</p><ol><li>Every point follows its <b>nearest</b> captain;</li><li>Every captain moves to the <b>average position of its team</b> (the middle).</li></ol><p>If two captains start in the same cluster, they can get <b>stuck</b> and produce odd teams — this is called a “local optimum”, so where you start matters too!</p>'),
     quiz: {
-      q: '一家奶茶店有 1000 位顾客的消费记录，但<b>没有人告诉你</b>顾客分为哪几类。你想自动把顾客分成几群，做不同的优惠活动。最适合用哪种方法？',
-      options: ['聚类（比如 K 均值）', '监督学习：先给每位顾客贴好标签', '梯度下降找谷底', '让机器人走迷宫'],
+      q: tr(
+        '一家奶茶店有 1000 位顾客的消费记录，但<b>没有人告诉你</b>顾客分为哪几类。你想自动把顾客分成几群，做不同的优惠活动。最适合用哪种方法？',
+        'A bubble tea shop has purchase records for 1,000 customers, but <b>nobody tells you</b> what types of customers there are. You want to automatically split them into groups for different promotions. Which method fits best?'),
+      options: [
+        tr('聚类（比如 K 均值）', 'Clustering (e.g. K-means)'),
+        tr('监督学习：先给每位顾客贴好标签', 'Supervised learning: label every customer first'),
+        tr('梯度下降找谷底', 'Gradient descent to find the valley bottom'),
+        tr('让机器人走迷宫', 'Have a robot walk through a maze')
+      ],
       answer: 0,
-      hint: '关键词：“没有人告诉你分为哪几类”。',
-      explain: '没有标签、想让数据自己“抱团”，正是聚类（无监督学习）的用武之地。'
+      hint: tr('关键词：“没有人告诉你分为哪几类”。', 'Key phrase: “nobody tells you what types there are”.'),
+      explain: tr(
+        '没有标签、想让数据自己“抱团”，正是聚类（无监督学习）的用武之地。',
+        'No labels, and you want the data to “clump together” on its own — that’s exactly what clustering (unsupervised learning) is for.')
     },
 
     mount(stage, api) {
@@ -73,20 +89,20 @@
       assign(pts, caps);
 
       api.missions([
-        '拖动队长 🚩，给它们换个位置',
-        '按“队长走到队伍中间”，看看会怎样',
-        '分出三支整齐的队伍（队长站稳不动，而且队伍很紧凑）'
+        tr('拖动队长 🚩，给它们换个位置', 'Drag the captains 🚩 to new spots'),
+        tr('按“队长走到队伍中间”，看看会怎样', 'Press “Captains to the middle” and see what happens'),
+        tr('分出三支整齐的队伍（队长站稳不动，而且队伍很紧凑）', 'Form three neat teams (captains stop moving and teams are tight)')
       ]);
 
       const cv = G.makeCanvas(W, H);
-      const stepBtn = h('button', { class: 'btn btn-big btn-yellow', onclick: () => doStep(true) }, '📣 队长走到队伍中间');
-      const autoBtn = h('button', { class: 'btn btn-blue', onclick: autoRun }, '🔁 一直走到站稳');
-      const resetBtn = h('button', { class: 'btn btn-white', onclick: reset }, '↺ 队长回到起点');
+      const stepBtn = h('button', { class: 'btn btn-big btn-yellow', onclick: () => doStep(true) }, tr('📣 队长走到队伍中间', '📣 Captains to the middle'));
+      const autoBtn = h('button', { class: 'btn btn-blue', onclick: autoRun }, tr('🔁 一直走到站稳', '🔁 Repeat until settled'));
+      const resetBtn = h('button', { class: 'btn btn-white', onclick: reset }, tr('↺ 队长回到起点', '↺ Reset captains'));
       const spreadStat = h('b', {}, ''), stepStat = h('b', {}, '0');
       stage.append(cv.el,
         h('div', { class: 'stat-row' },
-          h('div', { class: 'stat' }, '📏 队伍松散度（越小越紧凑）', spreadStat),
-          h('div', { class: 'stat' }, '📣 队长移动次数', stepStat)),
+          h('div', { class: 'stat' }, tr('📏 队伍松散度（越小越紧凑）', '📏 Team spread (smaller = tighter)'), spreadStat),
+          h('div', { class: 'stat' }, tr('📣 队长移动次数', '📣 Captain moves'), stepStat)),
         h('div', { class: 'controls' }, stepBtn, autoBtn, resetBtn));
 
       function draw() {
@@ -144,7 +160,11 @@
         assign(pts, caps); stats(); draw();
       });
       const endDrag = () => {
-        if (dragging >= 0 && moved && api.check(0)) api.say('看到了吗？每只小鸡都跑向了<b>离自己最近</b>的队长。现在按<b>“队长走到队伍中间”</b>！', 'happy');
+        if (dragging >= 0 && moved && api.check(0)) {
+          api.say(tr(
+            '看到了吗？每只小鸡都跑向了<b>离自己最近</b>的队长。现在按<b>“队长走到队伍中间”</b>！',
+            'See that? Every chick ran to the captain <b>nearest to it</b>. Now press <b>“Captains to the middle”</b>!'), 'happy');
+        }
         dragging = -1; moved = false;
       };
       cv.el.addEventListener('pointerup', endDrag);
@@ -188,7 +208,9 @@
 
       function judge(move) {
         if (move >= 0.5) {
-          api.say('队长们走到了自己队伍的中间，小鸡们又重新挑了一次队长……再按几次试试？', 'think');
+          api.say(tr(
+            '队长们走到了自己队伍的中间，小鸡们又重新挑了一次队长……再按几次试试？',
+            'The captains moved to the middle of their teams, and the chicks picked their captains again… Press it a few more times?'), 'think');
           return;
         }
         const sp = spread(pts, caps);
@@ -200,8 +222,8 @@
           const counts = [0, 1, 2].map((k) => pts.filter((p) => p.team === k).length);
           const empty = counts.some((c) => c === 0);
           api.say(empty
-            ? '咦，有个队长<b>一只小鸡都没有</b>，卡住啦！把它拖到别的鸡群附近，再试一次。'
-            : '队长们<b>站稳不动了</b>，可是队伍分得有点怪（看看松散度！）。可能有两个队长挤在同一群里了——把队长拖开，再试试！', 'sad');
+            ? tr('咦，有个队长<b>一只小鸡都没有</b>，卡住啦！把它拖到别的鸡群附近，再试一次。', 'Huh, one captain has <b>no chicks at all</b> — it’s stuck! Drag it near another group of chicks and try again.')
+            : tr('队长们<b>站稳不动了</b>，可是队伍分得有点怪（看看松散度！）。可能有两个队长挤在同一群里了——把队长拖开，再试试！', 'The captains have <b>stopped moving</b>, but the teams look odd (check the spread!). Two captains may be crammed into the same group — drag them apart and try again!'), 'sad');
           api.sfx('bad');
         }
       }
