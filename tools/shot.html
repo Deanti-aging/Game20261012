@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>截图</title><link rel="stylesheet" href="../css/style.css"></head>
+<body>
+<div id="sky"></div><main id="app"></main><div id="modal-root"></div>
+<script src="../js/config.js"></script>
+<script src="../js/engine.js"></script>
+<script src="../js/cards.js"></script>
+<script src="../js/levels/01-labels.js"></script>
+<script src="../js/levels/02-features.js"></script>
+<script src="../js/levels/03-descent.js"></script>
+<script src="../js/levels/04-learning-rate.js"></script>
+<script src="../js/levels/05-fitting.js"></script>
+<script src="../js/levels/06-exam.js"></script>
+<script src="../js/levels/07-network.js"></script>
+<script src="../js/levels/08-kmeans.js"></script>
+<script src="../js/levels/09-spam.js"></script>
+<script src="../js/levels/10-dirty-data.js"></script>
+<script src="../js/levels/11-maze.js"></script>
+<script src="../js/levels/12-next-word.js"></script>
+<script>
+  // 截图辅助：?level=N 进入关卡并关掉开场卡；?view=map|reveal|card
+  const p = new URLSearchParams(location.search);
+  const n = +p.get('level');
+  if (n) {
+    G.startLevel(G.levels[n - 1]);
+    const b = [...document.querySelectorAll('button')].find((x) => x.textContent.includes('开始训练！'));
+    b && b.click();
+    setTimeout(() => { document.getElementById('modal-root').innerHTML = ''; }, 300);
+  } else if (p.get('view') === 'map') {
+    G.state.done = { labels: true, features: true, descent: true }; G.showMap();
+  } else if (p.get('view') === 'card') {
+    G.state.cards = { gd: true, loss: true, label: true, supervised: true, feature: true }; G.showCollection();
+    setTimeout(() => document.querySelector('.collection-grid .term-card').click(), 100);
+  }
+</script>
+</body>
+</html>

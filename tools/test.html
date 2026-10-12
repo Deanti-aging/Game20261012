@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>自动测试</title><link rel="stylesheet" href="../css/style.css"></head>
+<body>
+<main id="app"></main><div id="modal-root"></div>
+<pre id="log" style="position:relative;z-index:999;background:#fff"></pre>
+<script>
+  window.__errs = [];
+  window.onerror = (m, s, l) => { window.__errs.push(m + ' @' + s + ':' + l); };
+  window.addEventListener('unhandledrejection', (e) => window.__errs.push('promise: ' + (e.reason && e.reason.stack || e.reason)));
+  try { localStorage.clear(); } catch (e) {}
+</script>
+<script src="../js/config.js"></script>
+<script src="../js/engine.js"></script>
+<script src="../js/cards.js"></script>
+<script src="../js/levels/01-labels.js"></script>
+<script src="../js/levels/02-features.js"></script>
+<script src="../js/levels/03-descent.js"></script>
+<script src="../js/levels/04-learning-rate.js"></script>
+<script src="../js/levels/05-fitting.js"></script>
+<script src="../js/levels/06-exam.js"></script>
+<script src="../js/levels/07-network.js"></script>
+<script src="../js/levels/08-kmeans.js"></script>
+<script src="../js/levels/09-spam.js"></script>
+<script src="../js/levels/10-dirty-data.js"></script>
+<script src="../js/levels/11-maze.js"></script>
+<script src="../js/levels/12-next-word.js"></script>
+<script>
+(async function () {
+  const out = [];
+  const log = (s) => out.push(s);
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => [...document.querySelectorAll(s)];
+  const btn = (text) => $$('button').find((b) => b.textContent.includes(text));
+  const closeIntro = () => { const b = btn('开始训练！'); b && b.click(); };
+  const won = () => !!$('.winbar.show');
+  const say = () => $('.bubble').textContent.slice(0, 80);
+  const setRange = (input, v, change = true) => { input.value = v; input.dispatchEvent(new Event('input')); if (change) input.dispatchEvent(new Event('change')); };
+  const lv = (n) => { G.startLevel(G.levels[n - 1]); closeIntro(); };
+
+  try {
+    G.showTitle(); log('title ok'); G.showMap(); log('map tiles: ' + $$('.map-tile').length);
+    G.showCollection(); log('collection cards: ' + $$('.collection-grid .term-card').length);
+    G.showDonate(); log('donate links: ' + $$('.donate-btn').map((a) => a.href).join(' | '));
+
+    // L1
+    lv(1);
+    $$('.pic-card').forEach((c, i) => c.querySelectorAll('.label-btn')[[0, 1, 0, 1, 0, 1, 0, 1][i]].click());
+    btn('开始训练').click(); await sleep(6000);
+    log('L1 won=' + won() + ' | ' + say());
+    // reveal + quiz
+    btn('揭晓').click(); await sleep(50);
+    log('  reveal terms: ' + $$('.reveal-term').map((e) => e.textContent).join(','));
+    btn('小测验').click(); await sleep(50);
+    log('  quiz opts: ' + $$('.quiz-opt').length);
+
+    // L1 mislabeled
+    lv(1);
+    $$('.pic-card').forEach((c, i) => c.querySelectorAll('.label-btn')[[0, 1, 0, 1, 1, 1, 0, 1][i]].click());
+    btn('开始训练').click(); await sleep(6000);
+    log('L1 mislabel won=' + won() + ' | ' + say());
+
+    // L2 combos
+    const combos = [['耳朵', '鼻子'], ['鼻子', '体型'], ['耳朵', '颜色'], ['耳朵', '鼻子', '颜色'], ['耳朵', '鼻子', '尾巴'], ['耳朵', '鼻子', '体型'], ['耳朵', '体型']];
+    for (const cb of combos) {
+      lv(2);
+      cb.forEach((k) => $$('.clue').find((b) => b.textContent.includes(k)).click());
+      btn('让波波去分类').click(); await sleep(4000);
+      log('L2 ' + cb.join('+') + ': ' + $$('.chip').map((c) => c.textContent).filter((t) => t.includes('分对')).join() + ' won=' + won());
+    }
+
+    // L3
+    lv(3);
+    const step = $('input[type=range]');
+    setRange(step, 1.5);
+    for (let i = 0; i < 3; i++) { btn('往右走').click(); await sleep(500); }
+    log('L3 won=' + won() + ' | ' + say());
+
+    // L4
+    lv(4);
+    const lr = $('input[type=range]');
+    for (const v of [2.2, 1.8, 0.1, 0.7]) {
+      setRange(lr, v); btn('滚').click(); await sleep(12000);
+      log('L4 eta=' + v + ' -> ' + say() + ' checks=' + $$('.missions li.done').length);
+    }
+    log('L4 won=' + won());
+
+    // L5
+    lv(5);
+    const deg = $('input[type=range]');
+    const rows = [];
+    for (let d = 0; d <= 11; d++) {
+      setRange(deg, d);
+      rows.push(d + ':' + $$('.bar-row span:last-child').map((s) => s.textContent).join('/') + ' ' + $('.stat-row .stat').textContent);
+    }
+    log('L5 errors (train/test):\n   ' + rows.join('\n   '));
+    for (let d = 0; d <= 11; d++) { setRange(deg, d); btn('就选它了').click(); if (won()) { log('L5 won at degree ' + d); break; } }
+
+    // L6
+    lv(6);
+    btn('开始考试').click(); await sleep(3000);
+    log('L6 first exam: ' + say());
+    $$('.exam-paper .q-card')[0].click(); $$('.exam-paper .q-card')[0].click();
+    $$('.q-pool .q-card').find((b) => b.textContent.startsWith('4 只')).click();
+    $$('.q-pool .q-card').find((b) => b.textContent.startsWith('7 只')).click();
+    btn('开始考试').click(); await sleep(3000);
+    log('L6 won=' + won() + ' | ' + $$('.score-big').map((e) => e.textContent).join(','));
+
+    // L7 — set weights via simulated wire clicks
+    lv(7);
+    const hits = $$('.net-svg .hit');
+    const target = [[1, 0, 0], [0, 0.6, 0], [0, 0, 1]];
+    const wsl = $('.stage input[type=range]');
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+      hits[i * 3 + j].dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      setRange(wsl, target[i][j]);
+    }
+    log('L7 won=' + won() + ' tabs: ' + $$('.animal-tab').map((b) => b.textContent).join(' '));
+
+    // L8
+    lv(8);
+    btn('一直走到站稳').click(); await sleep(15000);
+    log('L8 bunched start: won=' + won() + ' | ' + say() + ' | ' + $('.stat b').textContent);
+    // 把卡在左上角的一个队长拖到下方鸡群，再自动走
+    btn('队长回到起点').click(); await sleep(50);
+    const cvs = $('.game-canvas'), rc = cvs.getBoundingClientRect();
+    const at = (x, y) => ({ clientX: rc.left + x * rc.width / 640, clientY: rc.top + y * rc.height / 400, pointerId: 1, bubbles: true });
+    cvs.dispatchEvent(new PointerEvent('pointerdown', at(150, 110)));
+    cvs.dispatchEvent(new PointerEvent('pointermove', at(320, 320)));
+    cvs.dispatchEvent(new PointerEvent('pointerup', at(320, 320)));
+    btn('一直走到站稳').click(); await sleep(15000);
+    log('L8 after drag: won=' + won() + ' | ' + say() + ' | ' + $('.stat b').textContent + ' | missions=' + $$('.missions li.done').length);
+
+    // L9
+    lv(9);
+    const s9 = $('input[type=range]');
+    for (const v of [10, 80, 42]) { setRange(s9, v); log('L9 s=' + v + ' -> ' + $$('.stat b').map((b) => b.textContent).join(' ')); }
+    log('L9 won=' + won());
+
+    // L10
+    lv(10);
+    btn('训练 + 考试').click(); await sleep(3000);
+    log('L10 first: ' + $$('.chip').map((c) => c.textContent).join(' ') + ' | ' + say());
+    const tcards = $$('.data-card');
+    // 训练资料 15 张：扔掉脏的(下标 2,6,8,11,14)；补充箱：加入 0,1 (🍏苹果, 🍋柠檬)
+    [2, 6, 8, 11, 14].forEach((i) => tcards[i].click());
+    let ec = $$('.data-card'); ec[15].click(); ec = $$('.data-card'); ec[16].click();
+    btn('训练 + 考试').click(); await sleep(3000);
+    log('L10 cleaned: won=' + won() + ' | ' + say());
+
+    // L11
+    lv(11);
+    btn('训练 20 回合').click(); await sleep(1500);
+    btn('考试').click(); await sleep(8000);
+    log('L11 goal=0: ' + say());
+    const s11 = $('input[type=range]');
+    setRange(s11, 100);
+    let ok11 = false;
+    for (let k = 1; k <= 10 && !ok11; k++) {
+      btn('训练 20 回合').click(); await sleep(1500);
+      btn('考试').click(); await sleep(8000);
+      ok11 = won();
+      log('L11 goal=100 after ' + k * 20 + ' eps: won=' + ok11 + ' | ' + $('.log').firstChild.textContent);
+    }
+
+    // L12
+    lv(12);
+    for (let r = 0; r < 5; r++) {
+      $$('.choice-row .btn')[0].click(); await sleep(30);
+      (btn('下一句') || btn('完成！')).click(); await sleep(30);
+    }
+    const t12 = $$('.stage input[type=range]').pop();
+    setRange(t12, 0.2); btn('写一个故事').click(); await sleep(50);
+    log('L12 low story: ' + $('.story-out').textContent);
+    setRange(t12, 2.5); btn('写一个故事').click(); await sleep(2000);
+    log('L12 high story: ' + $('.story-out').textContent + ' won=' + won());
+
+    G.showMap(); log('done levels: ' + $$('.map-tile.done').length);
+  } catch (e) {
+    log('EXCEPTION: ' + e.stack);
+  }
+  log('ERRORS: ' + JSON.stringify(window.__errs));
+  document.getElementById('app').innerHTML = '';
+  document.getElementById('log').textContent = out.join('\n');
+  document.title = 'DONE';
+})();
+</script>
+</body>
+</html>

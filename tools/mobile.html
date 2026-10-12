@@ -1,0 +1,7 @@
+<!doctype html><meta charset="utf-8"><title>手机预览</title>
+<body style="margin:0;background:#333;display:flex;gap:12px;padding:12px">
+<script>
+  // 用 390px 宽的 iframe 模拟手机屏幕：?q=level=6
+  const q = new URLSearchParams(location.search).get('q') || 'view=map';
+  document.write('<iframe src="shot.html?' + q + '" style="width:390px;height:1600px;border:0;background:#fff"></iframe>');
+</script>
